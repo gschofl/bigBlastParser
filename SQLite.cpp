@@ -1,9 +1,8 @@
 #include "SQLite.hpp"
 
-
-std::vector<std::string> split(const std::string& s,
-                               const std::string& delim = " ",
-                               const bool keep_empty = true)
+std::vector<std::string> split_string(const std::string& s,
+                                      const std::string& delim = " ",
+                                      bool keep_empty = true)
 {
     std::vector<std::string> elems;
     std::string::const_iterator start = s.begin(), end;

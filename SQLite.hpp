@@ -66,7 +66,7 @@ CREATE INDEX Fhsp_hit_query ON hsp (query_id, hit_id, hsp_id);
 
 typedef void(*del)(void*);
 
-std::vector<std::string> split(const std::string&, const std::string&, const bool);
+std::vector<std::string> split_string(const std::string&, const std::string&, bool);
 
 template <typename T>
 class Attribute
@@ -388,7 +388,7 @@ class SqliteDB
                 throw std::logic_error(std::string("Can't open database ") +
                                        dbName + " because of " + sqlite3_errmsg(db_));
             }
-            std::vector<std::string> statementStrings = split(schema, ";\n", false);
+            std::vector<std::string> statementStrings = split_string(schema, ";\n", false);
             for (auto& stmtStr : statementStrings)
             {
                 // std::cout << ">>>>" << stmtStr << "<<<<" << std::endl;

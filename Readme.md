@@ -1,15 +1,71 @@
-# _BlastParser_
+# _bigBlastParser_
 
-_blastParser_ is a very fast (SAX-style) NCBI BLAST XML parser for very large BLAST XML files.
+_bigBlastParser_ is a very fast (SAX-style) NCBI BLAST parser for very large BLAST XML files.
 
 
-It will parse the XML file into a SQLite database, containing three tables __query__, __hit__,
-__hsp__.
+It will parse the BLAST data into a SQLite database, generating three tables __query__, __hit__,
+__hsp__, that can be queried using standard SQL.
+
+
+The tables are designed as follows:
+
+        CREATE TABLE query(
+                query_id      INTEGER,
+                query_def     TEXT,
+                query_len     INTEGER,
+                PRIMARY KEY (query_id)
+                );
+        CREATE INDEX Fquery ON query (query_id);
+
+        CREATE TABLE hit(
+                query_id      INTEGER,
+                hit_id        INTEGER,
+                hit_num       INTEGER,
+                gene_id       TEXT,
+                accession     TEXT,
+                definition    TEXT,
+                length        INTEGER,
+                PRIMARY KEY (hit_id),
+                FOREIGN KEY (query_id) REFERENCES query (query_id)
+                );
+        CREATE INDEX Fhit ON hit (hit_id);
+        CREATE INDEX Fhit_hit_query ON hit (query_id, hit_id);
+        CREATE INDEX Fhit_query ON hit (query_id);
+
+        CREATE TABLE hsp(
+                query_id      INTEGER,
+                hit_id        INTEGER,
+                hsp_id        INTEGER,
+                hsp_num       INTEGER,
+                bit_score     FLOAT,
+                score         INTEGER,
+                evalue        FLOAT,
+                query_from    INTEGER,
+                query_to      INTEGER,
+                hit_from      INTEGER,
+                hit_to        INTEGER,
+                query_frame   INTEGER,
+                hit_frame     INTEGER,
+                identity      INTEGER,
+                positive      INTEGER,
+                gaps          INTEGER,
+                align_len     INTEGER,
+                qseq          TEXT,
+                hseq          TEXT,
+                midline       TEXT,
+                PRIMARY KEY (hsp_id),
+                FOREIGN KEY (hit_id) REFERENCES hit (hit_id)
+                FOREIGN KEY (query_id) REFERENCES query (query_id)
+                );
+        CREATE INDEX Fhsp ON hsp (hsp_id);
+        CREATE INDEX Fhsp_hit ON hsp (hit_id);
+        CREATE INDEX Fhsp_hit_query ON hsp (query_id, hit_id, hsp_id);
+        CREATE INDEX Fhsp_query ON hsp (query_id);
 
 The maximum number of hits parsed per query, and the maximum number of hsps parsed per hit
 are controlled by command line options.
 
-== Install
+## Install
 
 You will need the Xerces-C++ XML parser and SQLite. On Ubuntu use
 
@@ -17,16 +73,16 @@ You will need the Xerces-C++ XML parser and SQLite. On Ubuntu use
 
 then download and build the program:
 
-	git clone git://github.com/gschofl/BigBlastParser
+    git clone https://github.com/gschofl/BigBlastParser.gits
 	cd BigBlastParser
 	make
 	make clean
 
-== Command line usage
+## Command line usage
 
-=== Usage
+### Usage
 
-  bigBlastParser [options] <blastfile>.xml
+    bigBlastParser [options] <blastfile>.xml
 
     -o, --out 	dbName        Output SQLite database (default: <blastfile>.db)
     --max_hit	n        	  Maximum number of hits parsed from a query (default: 20);
