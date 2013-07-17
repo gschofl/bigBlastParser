@@ -31,3 +31,24 @@ std::ostream& operator<<(std::ostream& out, const BlastQuery& query) {
     return out;
 }
 
+// split a string
+void strsplit(const std::string& str, char c, std::vector<std::string>& out) {
+    std::string::size_type i = 0;
+    std::string::size_type j = str.find(c);
+    while (j != std::string::npos) {
+        out.push_back(str.substr(i, j-i));
+        i = ++j;
+        j = str.find(c, j);
+        if (j == std::string::npos)
+            out.push_back(str.substr(i, str.length( )));
+    }
+}
+
+
+void BlastHit::setHitId( const std::string& id )  {
+    std::vector<std::string> out;
+    strsplit(id, '|', out);
+    this->id_ = out[1];
+}
+
+

@@ -214,7 +214,7 @@ class BlastHit
         void setID( const int& count ) { count_ = count ; }
         void setQueryID( const int& queryId ) { query_id_ = queryId ; }
         void setHitNum( const int& num ) { num_ = num ; }
-        void setHitId( const std::string& id )  { id_ = id ; }
+        void setHitId( const std::string& id );
         void setHitDef( const std::string& def )  { def_ = def ; }
         void setHitAccession( const std::string& accession )  { accession_ = accession ; }
         void setHitLen( const unsigned int& len ) { len_ = len ; }

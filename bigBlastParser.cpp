@@ -144,7 +144,7 @@ static void show_usage(std::string name) {
          << " the SQLite DB.\n\t\t\t\tDefault [1000].\n"
          << "\t<blastfile.xml> Input file.\n"
          << "DESCRIPTION\n"
-         << "\tblastParse 0.1-alpha -- Convert XML Blast Reports to an SQLite DB\n\n"
+         << "\tblastParse 0.1.1 -- Convert XML Blast Reports to an SQLite DB\n\n"
          << endl;
 }
 
