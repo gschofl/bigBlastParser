@@ -210,7 +210,7 @@ void BlastQueryContentHandler::endElement(
         {
             hit_.setHitAccession (toNative (currText_));
         }
-        else if (qname == queryLen) {
+        else if (qname == hitLen) {
             hit_.setHitLen (static_cast<unsigned int> (std::stoi (toNative (currText_))));
         }
     }

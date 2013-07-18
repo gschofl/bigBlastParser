@@ -48,7 +48,13 @@ void strsplit(const std::string& str, char c, std::vector<std::string>& out) {
 void BlastHit::setHitId( const std::string& id )  {
     std::vector<std::string> out;
     strsplit(id, '|', out);
-    this->id_ = out[1];
+    // if the defline contains a GI number, we grab only the GI
+    // else we grap all of the defline
+    if (out[0] == "gi") {
+        this->id_ = out[1];
+    } else {
+        this->id_ = id;
+    }
 }
 
 
