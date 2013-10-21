@@ -105,6 +105,9 @@ int main(int argc, char *argv[])
         std::vector<BlastQuery> queryList;
         BlastQueryContentHandler queryHandler(queryList, dbName, max_hit,
                                               max_hsp, reset_at);
+        // Ignore the DTD declaration
+        parser->setFeature(XMLUni::fgXercesLoadExternalDTD, false);
+
         parser->setContentHandler(&queryHandler);
         parser->setErrorHandler(&queryHandler);
         // parse xmlFile
