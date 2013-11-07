@@ -13,10 +13,12 @@ using std::endl;
 static void show_usage(std::string name);
 std::string replace_extension(std::string, const std::string);
 bool file_exists(std::string&);
+BlastQueryContentHandler& makeBlastQueryContentHandler(bool);
 
 // set defaults
 std::string xmlFile;                // must be provided
 std::string dbName("");
+bool append = false;
 int max_hit = 20;
 int max_hsp = 20;
 int reset_at = 1000;
@@ -44,6 +46,8 @@ int main(int argc, char *argv[])
         } else if (i + 1 != argc) {
             if (arg == "-o" || arg == "--out") {
                 dbName = argv[++i];
+            } else if (arg == "-a" || arg == "--append") {
+                append =true;
             } else if (arg == "--max_hit" ) {
                 max_hit = strtol( argv[++i], &offset, 10 );
             } else if (arg == "--max_hsp" ) {
@@ -79,8 +83,9 @@ int main(int argc, char *argv[])
         dbName = replace_extension(xmlFile, "db");
     }
 
-    if (file_exists(dbName)) {
-        // choose another name or remove the offending file
+    if (!append && file_exists(dbName)) {
+        // choose another name or remove the offending file if you don't
+        // want to append to an existing B
         cerr << "DB file '" << dbName << "' already exists." << endl;
         return 1;
     }
@@ -103,16 +108,22 @@ int main(int argc, char *argv[])
         // optain parser and register the Blast Query Handler
         std::unique_ptr<SAX2XMLReader> parser{ XMLReaderFactory::createXMLReader() };
         std::vector<BlastQuery> queryList;
-        BlastQueryContentHandler queryHandler(queryList, dbName, max_hit,
-                                              max_hsp, reset_at);
-        // Ignore the DTD declaration
-        parser->setFeature(XMLUni::fgXercesLoadExternalDTD, false);
-
-        parser->setContentHandler(&queryHandler);
-        parser->setErrorHandler(&queryHandler);
-        // parse xmlFile
-        parser->parse( xmlFile.c_str() );
-
+        if (append)
+        {
+            BlastQueryContentHandler queryHandler(queryList, dbName, max_hit, max_hsp, reset_at);
+            parser->setFeature(XMLUni::fgXercesLoadExternalDTD, false);
+            parser->setContentHandler(&queryHandler);
+            parser->setErrorHandler(&queryHandler);
+            parser->parse(xmlFile.c_str());
+        }
+        else
+        {
+            BlastQueryContentHandler queryHandler(queryList, dbName, BLAST_DB_SCHEMA, max_hit, max_hsp, reset_at);
+            parser->setFeature(XMLUni::fgXercesLoadExternalDTD, false);
+            parser->setContentHandler(&queryHandler);
+            parser->setErrorHandler(&queryHandler);
+            parser->parse(xmlFile.c_str());
+        }
     } catch (const XMLException& toCatch) {
         char* message = XMLString::transcode(toCatch.getMessage ());
         cout << "Exception message is: \n"
@@ -141,6 +152,7 @@ static void show_usage(std::string name) {
          << "OPTIONS:\n"
          << "\t-h,--help\t\tShow this help message\n"
          << "\t-o,--out <filename>\tPath to SQLite file. Default [<blastfile>.db].\n"
+         << "\t-a, --append\t\tAppend data to an existing SQlite DB.\n"
          << "\t--max_hit <n>\t\tNumber of hits parsed. Default [20] (set [-1] for all).\n"
          << "\t--max_hsp <n>\t\tNumber of hsps parsed. Default [20] (set [-1] for all).\n"
          << "\t--reset_at <n>\t\tAfter <n> parsed queries the data is dumped to"
@@ -188,6 +200,7 @@ inline bool file_exists( std::string& name ) {
     struct stat file;
     return( stat( name.c_str(), &file ) == 0 );
 }
+
 
 //
 // only for debugging command line args

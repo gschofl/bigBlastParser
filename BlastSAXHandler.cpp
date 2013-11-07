@@ -29,12 +29,13 @@ void BlastQueryContentHandler::printState()
 
 
 void BlastQueryContentHandler::startDocument() {
-    // cout << "Start of Dokument" << endl;
+    //cout << "Calling startDocument()" << endl;
 }
 
 
 // call dump_to_sqliteDB() to clean up after the last round of parsing
 void BlastQueryContentHandler::endDocument() {
+    //cout << "Calling endDocument()" << endl;
     this->dump_to_sqliteDB();
 }
 
@@ -45,6 +46,7 @@ void BlastQueryContentHandler::startElement(
         const XMLCh * const qname,
         const Attributes &attrs)
 {
+    //cout << "Calling startElement()" << endl;
     if (qname == iteration)
     {
         // entering a query; set state to 'inside_query'
@@ -52,14 +54,14 @@ void BlastQueryContentHandler::startElement(
         inside_hit_     = false;
         skip_hit_       = false;
         inside_hsp_     = false;
-        skip_hsp_     = false;
+        skip_hsp_       = false;
         //BlastQueryContentHandler::printState ();
 
         // initialize new query, hit, and hsp and count query one up
         query_ = BlastQuery();
         hit_ = BlastHit();
         hsp_ = Hsp();
-        queryCounter_++;
+        query_.setID( ++queryCounter_ );
         //cout << "Parsing query number: " << queryCounter_ << endl;
     }
     else if (qname == iterationHits)
@@ -68,7 +70,7 @@ void BlastQueryContentHandler::startElement(
         inside_query_   = false;
         inside_hit_     = true;
         inside_hsp_     = false;
-        //BlastQueryContentHandler::printState ();
+        //BlastQueryContentHandler::printState();
 
         // clear out the previous 'hit_list'
         hit_list_.clear();
@@ -84,16 +86,16 @@ void BlastQueryContentHandler::startElement(
             hit_ = BlastHit();
             hsp_ =  Hsp();
             hit_.setID( ++hitCounter_ );
-            hit_.setQueryID( query_.getQueryId() );
+            hit_.setQueryID( query_.getID() );
             inside_hit_ = true;
-            //BlastQueryContentHandler::printState ();
+            //BlastQueryContentHandler::printState();
         }
         else
         {
             // switch off hit parsing and hsp parsing
             skip_hit_ = true;
             skip_hsp_ = true;
-            //BlastQueryContentHandler::printState ();
+            //BlastQueryContentHandler::printState();
         }
     }
     else if (qname == hitHsps && !skip_hit_)
@@ -102,7 +104,7 @@ void BlastQueryContentHandler::startElement(
         inside_query_   = false;
         inside_hit_     = false;
         inside_hsp_     = true;
-        //BlastQueryContentHandler::printState ();
+        //BlastQueryContentHandler::printState();
 
         // and clear out the previous hsp_list
         hsp_list_.clear();
@@ -124,7 +126,7 @@ void BlastQueryContentHandler::startElement(
         {
             // switch off hsp parsing
             skip_hsp_ = true;
-            //BlastQueryContentHandler::printState ();
+            //BlastQueryContentHandler::printState();
         }
     }
     else
@@ -141,6 +143,7 @@ void BlastQueryContentHandler::endElement(
         const XMLCh * const localname,
         const XMLCh * const qname )
 {
+    //cout << "Calling endElement()" << endl;
     if (qname == hsp && !skip_hsp_)
     {
         // leave hsp and push it onto hsp_list
@@ -170,18 +173,18 @@ void BlastQueryContentHandler::endElement(
         // when we leave the query, we push the current query onto query_list_
         query_list_.push_back(query_);
         // if we are at a multiple of 'reset_at_', we dump the 'query_list_' to SQLite
-        if (query_.getQueryId() % reset_at_ == 0)
+        if (query_.getID() % reset_at_ == 0)
         {
-            cout << "Parsing query number: " << queryCounter_ << endl;
+            //cout << "Reset at: " << reset_at_ << "; Parsing query number: " << queryCounter_ << endl;
             this->dump_to_sqliteDB();
         }
     }
     // for all other nodes we set the appropriate values in query, hit, or hsp
     else if (inside_query_)
     {
-        if (qname == queryId)
+        if (qname == queryNum)
         {
-            query_.setQueryId (static_cast<unsigned int> (std::stoi (toNative (currText_))));
+            query_.setQueryNum (static_cast<unsigned int> (std::stoi (toNative (currText_))));
         }
         else if (qname == queryDef)
         {
@@ -195,7 +198,7 @@ void BlastQueryContentHandler::endElement(
     {
         if (qname == hitNum)
         {
-            // cout << "Setting HitNum: " << toNative (currText_) << endl;
+            //cout << "Setting HitNum: " << toNative (currText_) << endl;
             hit_.setHitNum (static_cast<unsigned int> (std::stoi (toNative (currText_))));
         }
         else if (qname == hitId)
@@ -218,7 +221,7 @@ void BlastQueryContentHandler::endElement(
     {
         if (qname == hspNum)
         {
-            // cout << "Setting HspNum: " << toNative (currText_) << endl;
+            //cout << "Setting HspNum: " << toNative (currText_) << endl;
             hsp_.setHspNum (static_cast<unsigned int> (std::stoi (toNative (currText_))));
         }
         else if (qname == bitscore)
@@ -314,25 +317,25 @@ void BlastQueryContentHandler::dump_to_sqliteDB()
         hit_list_.clear();
         hsp_list_.clear();
         db_.insert<BlastQuery>(begin(query_list_), end(query_list_));
+        cout << "Processed " << queryCounter_;
         for (auto& query : query_list_)
         {
             std::vector<BlastHit> hits = query.getHit();
             hit_list_.reserve( hit_list_.size() + hits.size() );
             hit_list_.insert( end(hit_list_), begin(hits), end(hits) );
         }
-        //cout << "Clearing query list" << endl;
         query_list_.clear();
         db_.insert<BlastHit>(begin(hit_list_), end(hit_list_));
+        cout << " queries, " << hitCounter_;
         for (auto& hit : hit_list_)
         {
             std::vector<Hsp> hsps = hit.getHsp();
             hsp_list_.reserve( hsp_list_.size() + hsps.size() );
             hsp_list_.insert( end(hsp_list_), begin(hsps), end(hsps) );
         }
-        //cout << "Clearing hit list" << endl;
         hit_list_.clear();
         db_.insert<Hsp>(begin(hsp_list_), end(hsp_list_));
-        //cout << "Clearing hsp list" << endl;
+        cout << " hits, and " << hspCounter_ << " hsps." << endl;
         hsp_list_.clear();
 
     } catch (const std::logic_error& toCatch) {

@@ -23,7 +23,7 @@ std::ostream& operator<<(std::ostream& out, const BlastHit& hit) {
 
 // Write a BLAST query to an ostream
 std::ostream& operator<<(std::ostream& out, const BlastQuery& query) {
-    out << "Query [" << query.id_ << "] : "
+    out << "Query [" << query.num_ << "] : "
         << query.def_ << " ( " << query.len_ << " letters)\n";
     for (auto& hit : query.hit_) {
         out << hit ;

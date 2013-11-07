@@ -11,6 +11,7 @@ The tables are designed as follows:
 
         CREATE TABLE query(
                 query_id      INTEGER,
+                query_num     INTEGER,
                 query_def     TEXT,
                 query_len     INTEGER,
                 PRIMARY KEY (query_id)
@@ -73,7 +74,7 @@ You will need the Xerces-C++ XML parser and SQLite. On Ubuntu use
 
 then download and build the program:
 
-    git clone https://github.com/gschofl/BigBlastParser.gits
+    git clone https://github.com/gschofl/BigBlastParser.git
 	cd BigBlastParser
 	make
 	make clean
@@ -85,6 +86,7 @@ then download and build the program:
     bigBlastParser [options] <blastfile>.xml
 
     -o, --out 	dbName        Output SQLite database (default: <blastfile>.db)
+    -a, --append              Append data to an existing SQLite Blast DB.
     --max_hit	n        	  Maximum number of hits parsed from a query (default: 20);
     						  (set -1 to parse all available hits)
     --max_hit	n 		      Maximum number of hsps parsed from a hit (default: 20);

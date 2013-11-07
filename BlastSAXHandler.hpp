@@ -14,109 +14,140 @@ using namespace xercesc;
 // elements.
 class BlastQueryContentHandler : public DefaultHandler
 {
-    public:
-        BlastQueryContentHandler(std::vector<BlastQuery>& queryList,
-                                 std::string dbName = "blast.db",
-                                 int max_hit = -1,
-                                 int max_hsp = -1,
-                                 int reset_at = 1000)
-            : query_list_(queryList),
-              db_(dbName, BLAST_DB_SCHEMA),
-              max_hit_(max_hit),
-              max_hsp_(max_hsp),
-              reset_at_(reset_at)
-        { }
+public:
+    // Create a new database dbName applying dbSchema
+    BlastQueryContentHandler(std::vector<BlastQuery>& queryList,
+                             std::string dbName,
+                             std::string dbSchema,
+                             int max_hit = -1,
+                             int max_hsp = -1,
+                             int reset_at = 1000)
+        : query_list_(queryList),
+          db_(dbName, dbSchema),
+          queryCounter_(0),
+          hitCounter_(0),
+          hspCounter_(0),
+          max_hit_(max_hit),
+          max_hsp_(max_hsp),
+          reset_at_(reset_at)
+    {
+        //std::cout << "Max. query = " << queryCounter_ << "\n";
+        //std::cout << "Max. hit = " << hitCounter_ << "\n";
+        //std::cout << "Max. hsp = " << hspCounter_ << "\n";
+    }
 
-        void startDocument();
+    // Open an existing database dbName
+    BlastQueryContentHandler(std::vector<BlastQuery>& queryList,
+                             std::string dbName,
+                             int max_hit = -1,
+                             int max_hsp = -1,
+                             int reset_at = 1000)
+        : query_list_(queryList),
+          db_(dbName),
+          // set query, hit, and hspCounter
+          queryCounter_(db_.max_row("query_id", "query")),
+          hitCounter_(db_.max_row("hit_id", "hit")),
+          hspCounter_(db_.max_row("hsp_id", "hsp")),
+          max_hit_(max_hit),
+          max_hsp_(max_hsp),
+          reset_at_(reset_at)
 
-        void endDocument();
+    {
+        //std::cout << "Max. query = " << queryCounter_ << "\n";
+        //std::cout << "Max. hit = " << hitCounter_ << "\n";
+        //std::cout << "Max. hsp = " << hspCounter_ << "\n";
+    }
 
-        void startElement(
-                const XMLCh * const uri,
-                const XMLCh * const localname,
-                const XMLCh * const qname,
-                const Attributes &attrs);
+    void startDocument();
 
-        void endElement(
-                const XMLCh * const uri,
-                const XMLCh * const localname,
-                const XMLCh * const qname);
+    void endDocument();
 
-        void characters(const XMLCh * const chars, const XMLSize_t length);
+    void startElement(
+            const XMLCh * const uri,
+            const XMLCh * const localname,
+            const XMLCh * const qname,
+            const Attributes &attrs);
 
-        void fatalError(const SAXParseException &exc);
+    void endElement(
+            const XMLCh * const uri,
+            const XMLCh * const localname,
+            const XMLCh * const qname);
 
-        static void printState();
+    void characters(const XMLCh * const chars, const XMLSize_t length);
 
-    protected:
-        void dump_to_sqliteDB();
-        std::vector<BlastQuery>&            query_list_;
-        std::vector<BlastHit>               hit_list_;
-        std::vector<Hsp>                    hsp_list_;
-        XercesString                        currText_;
+    void fatalError(const SAXParseException &exc);
 
-        // SQLite database
-        SqliteDB db_;
+    static void printState();
 
-        // General Tags
-        XercesString iteration = fromNative ("Iteration");
-        XercesString iterationHits = fromNative ("Iteration_hits");
-        XercesString hit = fromNative ("Hit");
-        XercesString hitHsps = fromNative ("Hit_hsps");
-        XercesString hsp = fromNative ("Hsp");
+protected:
+    void dump_to_sqliteDB();
+    std::vector<BlastQuery>&            query_list_;
+    std::vector<BlastHit>               hit_list_;
+    std::vector<Hsp>                    hsp_list_;
+    XercesString                        currText_;
 
-        // Query Tags
-        XercesString queryId = fromNative ("Iteration_iter-num");
-        XercesString queryDef = fromNative ("Iteration_query-def");
-        XercesString queryLen = fromNative ("Iteration_query-len");
+    // SQLite database
+    SqliteDB db_;
 
-        // Hit Tags
-        XercesString hitNum = fromNative ("Hit_num");
-        XercesString hitId = fromNative ("Hit_id");
-        XercesString hitDef = fromNative ("Hit_def");
-        XercesString hitAccn = fromNative ("Hit_accession");
-        XercesString hitLen = fromNative ("Hit_len");
+    // General Tags
+    XercesString iteration = fromNative ("Iteration");
+    XercesString iterationHits = fromNative ("Iteration_hits");
+    XercesString hit = fromNative ("Hit");
+    XercesString hitHsps = fromNative ("Hit_hsps");
+    XercesString hsp = fromNative ("Hsp");
 
-        // Hsp Tags
-        XercesString hspNum = fromNative ("Hsp_num");
-        XercesString bitscore = fromNative ("Hsp_bit-score");
-        XercesString score = fromNative ("Hsp_score");
-        XercesString evalue = fromNative ("Hsp_evalue");
-        XercesString queryFrom = fromNative ("Hsp_query-from");
-        XercesString queryTo = fromNative ("Hsp_query-to");
-        XercesString hitFrom = fromNative ("Hsp_hit-from");
-        XercesString hitTo = fromNative ("Hsp_hit-to");
-        XercesString queryFrame = fromNative ("Hsp_query-frame");
-        XercesString hitFrame = fromNative ("Hsp_hit-frame");
-        XercesString identity = fromNative ("Hsp_identity");
-        XercesString positive = fromNative ("Hsp_positive");
-        XercesString gaps = fromNative ("Hsp_gaps");
-        XercesString alignLen = fromNative ("Hsp_align-len");
-        XercesString qseq = fromNative ("Hsp_qseq");
-        XercesString hseq = fromNative ("Hsp_hseq");
-        XercesString midline = fromNative ("Hsp_midline");
+    // Query Tags
+    XercesString queryNum = fromNative ("Iteration_iter-num");
+    XercesString queryDef = fromNative ("Iteration_query-def");
+    XercesString queryLen = fromNative ("Iteration_query-len");
 
-        // counters
-        unsigned int queryCounter_ = 0;
-        unsigned int hitCounter_ = 0;
-        unsigned int hspCounter_ = 0;
+    // Hit Tags
+    XercesString hitNum = fromNative ("Hit_num");
+    XercesString hitId = fromNative ("Hit_id");
+    XercesString hitDef = fromNative ("Hit_def");
+    XercesString hitAccn = fromNative ("Hit_accession");
+    XercesString hitLen = fromNative ("Hit_len");
 
-        // max number of hits and hsps to be parsed
-        int max_hit_;
-        int max_hsp_;
-        int reset_at_;
+    // Hsp Tags
+    XercesString hspNum = fromNative ("Hsp_num");
+    XercesString bitscore = fromNative ("Hsp_bit-score");
+    XercesString score = fromNative ("Hsp_score");
+    XercesString evalue = fromNative ("Hsp_evalue");
+    XercesString queryFrom = fromNative ("Hsp_query-from");
+    XercesString queryTo = fromNative ("Hsp_query-to");
+    XercesString hitFrom = fromNative ("Hsp_hit-from");
+    XercesString hitTo = fromNative ("Hsp_hit-to");
+    XercesString queryFrame = fromNative ("Hsp_query-frame");
+    XercesString hitFrame = fromNative ("Hsp_hit-frame");
+    XercesString identity = fromNative ("Hsp_identity");
+    XercesString positive = fromNative ("Hsp_positive");
+    XercesString gaps = fromNative ("Hsp_gaps");
+    XercesString alignLen = fromNative ("Hsp_align-len");
+    XercesString qseq = fromNative ("Hsp_qseq");
+    XercesString hseq = fromNative ("Hsp_hseq");
+    XercesString midline = fromNative ("Hsp_midline");
 
-        // states
-        static bool inside_query_;
-        static bool inside_hit_;
-        static bool inside_hsp_;
-        static bool skip_hit_;
-        static bool skip_hsp_;
+    // counters
+    unsigned int queryCounter_;
+    unsigned int hitCounter_;
+    unsigned int hspCounter_;
 
-        // container for the currently parsed query, hit, and hsp instances
-        static BlastQuery query_;
-        static BlastHit hit_;
-        static Hsp hsp_;
+    // max number of hits and hsps to be parsed
+    int max_hit_;
+    int max_hsp_;
+    int reset_at_;
+
+    // states
+    static bool inside_query_;
+    static bool inside_hit_;
+    static bool inside_hsp_;
+    static bool skip_hit_;
+    static bool skip_hsp_;
+
+    // container for the currently parsed query, hit, and hsp instances
+    static BlastQuery query_;
+    static BlastHit hit_;
+    static Hsp hsp_;
 } ;
 
 

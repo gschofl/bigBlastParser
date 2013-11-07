@@ -31,4 +31,4 @@ std::string toNative (const XercesString& str) {
 }
 
 
-#endif // XERCESsSTRING_HPP
+#endif // XERCESSTRING_HPP
