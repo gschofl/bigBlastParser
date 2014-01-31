@@ -29,13 +29,13 @@ void BlastQueryContentHandler::printState()
 
 
 void BlastQueryContentHandler::startDocument() {
-    //cout << "Calling startDocument()" << endl;
+    // cout << "Calling startDocument()" << endl;
 }
 
 
 // call dump_to_sqliteDB() to clean up after the last round of parsing
 void BlastQueryContentHandler::endDocument() {
-    //cout << "Calling endDocument()" << endl;
+    // cout << "Calling endDocument()" << endl;
     this->dump_to_sqliteDB();
 }
 
@@ -46,7 +46,7 @@ void BlastQueryContentHandler::startElement(
         const XMLCh * const qname,
         const Attributes &attrs)
 {
-    //cout << "Calling startElement()" << endl;
+    // cout << "Calling startElement( <" << toNative(qname) << "> )" << endl;
     if (qname == iteration)
     {
         // entering a query; set state to 'inside_query'
@@ -55,14 +55,14 @@ void BlastQueryContentHandler::startElement(
         skip_hit_       = false;
         inside_hsp_     = false;
         skip_hsp_       = false;
-        //BlastQueryContentHandler::printState ();
+        // BlastQueryContentHandler::printState ();
 
         // initialize new query, hit, and hsp and count query one up
         query_ = BlastQuery();
         hit_ = BlastHit();
         hsp_ = Hsp();
         query_.setID( ++queryCounter_ );
-        //cout << "Parsing query number: " << queryCounter_ << endl;
+        // cout << "Parsing query number: " << queryCounter_ << endl;
     }
     else if (qname == iterationHits)
     {
@@ -70,7 +70,7 @@ void BlastQueryContentHandler::startElement(
         inside_query_   = false;
         inside_hit_     = true;
         inside_hsp_     = false;
-        //BlastQueryContentHandler::printState();
+        // BlastQueryContentHandler::printState();
 
         // clear out the previous 'hit_list'
         hit_list_.clear();
@@ -88,14 +88,14 @@ void BlastQueryContentHandler::startElement(
             hit_.setID( ++hitCounter_ );
             hit_.setQueryID( query_.getID() );
             inside_hit_ = true;
-            //BlastQueryContentHandler::printState();
+            // BlastQueryContentHandler::printState();
         }
         else
         {
             // switch off hit parsing and hsp parsing
             skip_hit_ = true;
             skip_hsp_ = true;
-            //BlastQueryContentHandler::printState();
+            // BlastQueryContentHandler::printState();
         }
     }
     else if (qname == hitHsps && !skip_hit_)
@@ -104,7 +104,7 @@ void BlastQueryContentHandler::startElement(
         inside_query_   = false;
         inside_hit_     = false;
         inside_hsp_     = true;
-        //BlastQueryContentHandler::printState();
+        // BlastQueryContentHandler::printState();
 
         // and clear out the previous hsp_list
         hsp_list_.clear();
@@ -126,7 +126,7 @@ void BlastQueryContentHandler::startElement(
         {
             // switch off hsp parsing
             skip_hsp_ = true;
-            //BlastQueryContentHandler::printState();
+            // BlastQueryContentHandler::printState();
         }
     }
     else
@@ -143,7 +143,7 @@ void BlastQueryContentHandler::endElement(
         const XMLCh * const localname,
         const XMLCh * const qname )
 {
-    //cout << "Calling endElement()" << endl;
+    // cout << "Calling endElement( </" << toNative(qname) << "> )" << endl;
     if (qname == hsp && !skip_hsp_)
     {
         // leave hsp and push it onto hsp_list
@@ -198,11 +198,12 @@ void BlastQueryContentHandler::endElement(
     {
         if (qname == hitNum)
         {
-            //cout << "Setting HitNum: " << toNative (currText_) << endl;
+            // cout << "Setting HitNum: " << toNative(currText_) << endl;
             hit_.setHitNum (static_cast<unsigned int> (std::stoi (toNative (currText_))));
         }
         else if (qname == hitId)
         {
+            // cout << "Setting HitId: " << toNative(currText_) << endl;
             hit_.setHitId (toNative (currText_));
         }
         else if (qname == hitDef)
@@ -221,7 +222,7 @@ void BlastQueryContentHandler::endElement(
     {
         if (qname == hspNum)
         {
-            //cout << "Setting HspNum: " << toNative (currText_) << endl;
+            // cout << "Setting HspNum: " << toNative (currText_) << endl;
             hsp_.setHspNum (static_cast<unsigned int> (std::stoi (toNative (currText_))));
         }
         else if (qname == bitscore)

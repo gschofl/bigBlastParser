@@ -16,7 +16,7 @@ using std::endl;
 using std::string;
 using std::vector;
 
-const std::string BLAST_DB_SCHEMA = R"(
+const std::string BLAST_DB_SCHEMA = R"SCHEMA(
 CREATE TABLE query(
         query_id      INTEGER,
         query_num     INTEGER,
@@ -68,7 +68,7 @@ CREATE INDEX Fhsp ON hsp (hsp_id);
 CREATE INDEX Fhsp_query ON hsp (query_id);
 CREATE INDEX Fhsp_hit ON hsp (hit_id);
 CREATE INDEX Fhsp_hit_query ON hsp (query_id, hit_id, hsp_id);
-)";
+)SCHEMA";
 
 typedef void(*del)(void*);
 

@@ -1,5 +1,8 @@
 .depend
 bigBlastParser
+*.creator.*
+*.creator
+*.files
 *.o
 *.xml
 *.db
